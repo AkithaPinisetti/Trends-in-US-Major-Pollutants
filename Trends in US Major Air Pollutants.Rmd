@@ -45,20 +45,6 @@ pie_temp<-pol%>%group_by(state,county)%>%summarise_at(vars(no2.mean),list(no2_me
 pie_temp[pie_temp$state=='Texas',]%>%ggplot(aes(x="",y=no2_mean_per_county,fill=county))+geom_col(color="black")+ geom_text(aes(label=round(no2_mean_per_county,digit=2)),position=position_stack(vjust=0.5))+coord_polar(theta="y")+ scale_fill_brewer() + theme_bw() + ylab("")+xlab("O3 Mean Per County")+ggtitle("")+theme(plot.title = element_text(color="black", size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"),axis.title.y=element_text(color="black", size=14, face="bold"))
 
 ggplot(data=data_of_five_states,mapping = aes(x=state,y=so2.mean,color=state)) + geom_point()+ ggtitle("SO2 Mean of 5 US States")+theme(plot.title =element_text(color="black",size=14,face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"),axis.title.y= element_text(color="black", size=14, face="bold")) +ylab("so2 mean")
-```
-
-```{r}
-library(tidyverse)
-
-df<-read.csv("C:/Users/nvami/OneDrive/Desktop/Amith/MS/CUB/Boulder Course Material/STAT5000/Assignments/Week 1-2/Project Final/Project/pollution_us_2000_2016.csv")
-df<-as_tibble(df)
-names(df) <- tolower(names(df))
-colnames(df)[which(names(df) == "date.local")] <- "date"
-df$year <- format(as.Date(df$date,format="%Y-%m-%d"),"%Y")
-df$month <- format(as.Date(df$date,format="%Y-%m-%d"),"%m")
-pol <- df[complete.cases(df),] %>% distinct(state,year,month,.keep_all = TRUE)
-data_of_five_states<-pol[pol$state %in% c("Texas","Arizona","California","Colorado","Florida"),]
-
 
 # Step - 1
 find_mode <- function(x) {
@@ -87,7 +73,6 @@ cols_iqr
 
 
 # Step - 2: Histograms 
-library(ggplot2)
 
 # NO2 AQI - Bin Size 15
 ggplot(data=pol, mapping=aes(x=no2.aqi)) + geom_histogram(colour = 4, fill = "grey", bins = 15) + xlab("NO2 AQI") + ylab("Count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Histogram of NO2 AQI with Bin size of 15") + theme(plot.title=element_text(color="black", size=14, face="bold.italic", hjust=0.5), axis.title.x=element_text(color="black", size=14, face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
@@ -127,8 +112,6 @@ ggplot(data=pol, mapping=aes(x=o3.mean)) + geom_histogram(colour = 5, fill = "wh
 ggplot(data=pol, mapping=aes(x=o3.mean)) + geom_histogram(colour = 5, fill = "white", bins = 30) + xlab("O3 Mean") + ylab("Count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Histogram of O3 Mean column with Bin size of 30") + theme(plot.title=element_text(color="black", size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
 # O3 Mean - Bin Size 50
 ggplot(data=pol, mapping=aes(x=o3.mean)) + geom_histogram(colour = 5, fill = "white", bins = 50) + xlab("O3 Mean") + ylab("Count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Histogram of O3 Mean column with Bin size of 50") + theme(plot.title=element_text(color="black", size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
-
-
 
 
 # Step - 3: Box plots
