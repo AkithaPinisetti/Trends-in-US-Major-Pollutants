@@ -1,0 +1,253 @@
+---
+title: "Trends in US Major Pollutants"
+author: "Akitha Pinisetti"
+date: "2023-10-20"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(tidyverse)
+library(ggplot2)
+```
+
+```{r}
+df<-read.csv("C:\\Users\\akith\\Desktop\\STATS 5000\\Pollution Dataset\\pollution_us_2000_2016.csv")
+df<-as_tibble(df)
+names(df) <- tolower(names(df))
+colnames(df)[which(names(df) == "date.local")] <- "date"
+df$year <- format(as.Date(df$date,format="%m/%d/%Y"),"%Y")
+df$month <- format(as.Date(df$date,format="%m/%d/%Y"),"%m")
+pol <- df[complete.cases(df),] %>% distinct(state,year,month,.keep_all = TRUE)
+data_of_five_states<-pol[pol$state %in% c("Texas","Arizona","California","Colorado","Florida"),]
+
+ggplot(data=pol,mapping=aes(x=state,y=no2.mean))+geom_bar(stat="summary",fill="steelblue")+theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ylab("NO2 Mean") +ggtitle("NO2 Mean Across All US States")+theme(plot.title=element_text(color="black", size=14,face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"),axis.title.y = element_text(color="black", size=14, face="bold"))
+
+ggplot(data=pol,mapping=aes(x=month,y=no2.mean))+ geom_bar(stat="summary",fill="grey")+theme(axis.text.x=element_text(angle=90,vjust=0.5))+ ggtitle("NO2 Mean Value monthly")+ylab("NO2 Mean")+ theme(plot.title=element_text(color="black",size=14,face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"),axis.title.y=element_text(color="black",size=14,face="bold"))
+
+ggplot(data=data_of_five_states,mapping=aes(x=state,y=co.mean,fill=state))+geom_boxplot(alpha=0.3)+ylab("CO Mean") + ggtitle("CO Mean of 5 US States") + theme(plot.title =element_text(color="black",size=14,face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black", size=14, face="bold"),axis.title.y = element_text(color="black", size=14, face="bold"))
+
+ggplot(data=data_of_five_states,mapping=aes(x=state,y=o3.mean,fill=state))+geom_violin()+ stat_summary(fun="mean") + ylab("O3 Mean")+ggtitle("O3 Mean of 5 US States")+theme(plot.title=element_text(color="black",size=14,face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"),axis.title.y=element_text(color="black",size=14,face="bold"))
+
+ggplot(pol,mapping=aes(x=so2.mean)) + geom_histogram() + xlab("SO2 Mean") + ggtitle("SO2 Meandistribution")+theme(plot.title = element_text(color="black", size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14, face="bold"),axis.title.y = element_text(color="black", size=14, face="bold"))
+
+ggplot(data_of_five_states,aes(x=o3.aqi))+geom_density(aes(group=state,color=state,fill=state),alpha=0.3) + xlab("O3 Air Quality Index") + ggtitle("O3 Air Quality Index of 5 US States")+theme(plot.title=element_text(color="black",size=14,face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"),axis.title.y=element_text(color="black", size=14, face="bold"))
+
+ggplot(pol,mapping=aes(x=no2.mean,y=so2.mean))+geom_point()+xlab("No2Mean")+ylab("SO2Mean")+ggtitle("Scatter plot of NO2 Vs SO2 Mean")+theme(plot.title = element_text(color="black",size=14,face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black", size=14, face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+
+ggplot(data=pol%>%group_by(year)%>%summarise(co=mean(co.mean)),mapping=aes(x=year,y=co,group=1))+ geom_line(color="#00AFBB", size = 2) + geom_point() + ylab("CO Mean")+ggtitle("CO Mean Value Over Years") + theme(plot.title=element_text(color="black",size=14,face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"),axis.title.y=element_text(color="black", size=14, face="bold"))
+
+ggplot(pol,aes(x=no2.aqi))+geom_area(stat="bin",linetype="dashed",fill="lightblue",color="black")+geom_vline(aes(xintercept=mean(no2.aqi)),color="blue",linetype="dashed", size=1) +  xlab("NO2 Air Quality Index") + ggtitle("NO2 Air Quality Index distirbution Area Graph")+ theme(plot.title=element_text(color="black",size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"),axis.title.y = element_text(color="black", size=14, face="bold"))
+
+pie_temp<-pol%>%group_by(state,county)%>%summarise_at(vars(no2.mean),list(no2_mean_per_county=mean))
+pie_temp[pie_temp$state=='Texas',]%>%ggplot(aes(x="",y=no2_mean_per_county,fill=county))+geom_col(color="black")+ geom_text(aes(label=round(no2_mean_per_county,digit=2)),position=position_stack(vjust=0.5))+coord_polar(theta="y")+ scale_fill_brewer() + theme_bw() + ylab("")+xlab("O3 Mean Per County")+ggtitle("")+theme(plot.title = element_text(color="black", size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"),axis.title.y=element_text(color="black", size=14, face="bold"))
+
+ggplot(data=data_of_five_states,mapping = aes(x=state,y=so2.mean,color=state)) + geom_point()+ ggtitle("SO2 Mean of 5 US States")+theme(plot.title =element_text(color="black",size=14,face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"),axis.title.y= element_text(color="black", size=14, face="bold")) +ylab("so2 mean")
+```
+
+```{r}
+library(tidyverse)
+
+df<-read.csv("C:/Users/nvami/OneDrive/Desktop/Amith/MS/CUB/Boulder Course Material/STAT5000/Assignments/Week 1-2/Project Final/Project/pollution_us_2000_2016.csv")
+df<-as_tibble(df)
+names(df) <- tolower(names(df))
+colnames(df)[which(names(df) == "date.local")] <- "date"
+df$year <- format(as.Date(df$date,format="%Y-%m-%d"),"%Y")
+df$month <- format(as.Date(df$date,format="%Y-%m-%d"),"%m")
+pol <- df[complete.cases(df),] %>% distinct(state,year,month,.keep_all = TRUE)
+data_of_five_states<-pol[pol$state %in% c("Texas","Arizona","California","Colorado","Florida"),]
+
+
+# Step - 1
+find_mode <- function(x) {
+  u <- unique(x)
+  tab <- tabulate(match(x, u))
+  u[tab == max(tab)]
+}
+
+cols_mean = apply(X=pol[, c("no2.aqi", "o3.aqi", "so2.aqi", "co.aqi", "o3.mean")], 2, mean)
+cols_median = apply(X=pol[, c("no2.aqi", "o3.aqi", "so2.aqi", "co.aqi", "o3.mean")], 2, median)
+cols_mode = apply(X=pol[, c("no2.aqi", "o3.aqi", "so2.aqi", "co.aqi", "o3.mean")], 2, find_mode)
+cols_range = apply(X=pol[, c("no2.aqi", "o3.aqi", "so2.aqi", "co.aqi", "o3.mean")], 2, range)
+cols_variance = apply(X=pol[, c("no2.aqi", "o3.aqi", "so2.aqi", "co.aqi", "o3.mean")], 2, var)
+cols_stddev = apply(X=pol[, c("no2.aqi", "o3.aqi", "so2.aqi", "co.aqi", "o3.mean")], 2, sd)
+cols_quartiles = apply(X=pol[, c("no2.aqi", "o3.aqi", "so2.aqi", "co.aqi", "o3.mean")], 2, quantile)
+cols_iqr = apply(X=pol[, c("no2.aqi", "o3.aqi", "so2.aqi", "co.aqi", "o3.mean")], 2, IQR)
+
+cols_mean
+cols_median
+cols_mode
+cols_range
+cols_variance
+cols_stddev
+cols_quartiles
+cols_iqr
+
+
+# Step - 2: Histograms 
+library(ggplot2)
+
+# NO2 AQI - Bin Size 15
+ggplot(data=pol, mapping=aes(x=no2.aqi)) + geom_histogram(colour = 4, fill = "grey", bins = 15) + xlab("NO2 AQI") + ylab("Count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Histogram of NO2 AQI with Bin size of 15") + theme(plot.title=element_text(color="black", size=14, face="bold.italic", hjust=0.5), axis.title.x=element_text(color="black", size=14, face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+# NO2 AQI - Bin Size 30
+ggplot(data=pol, mapping=aes(x=no2.aqi)) + geom_histogram(colour = 4, fill = "grey", bins = 30) + xlab("NO2 AQI") + ylab("Count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Histogram of NO2 AQI with Bin size of 30") + theme(plot.title=element_text(color="black", size=14, face="bold.italic", hjust=0.5), axis.title.x=element_text(color="black", size=14, face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+# NO2 AQI - Bin Size 50
+ggplot(data=pol, mapping=aes(x=no2.aqi)) + geom_histogram(colour = 4, fill = "grey", bins = 50) + xlab("NO2 AQI") + ylab("Count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Histogram of NO2 AQI with Bin size of 50") + theme(plot.title=element_text(color="black", size=14, face="bold.italic", hjust=0.5), axis.title.x=element_text(color="black", size=14, face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+
+
+# O3 AQI - Bin Size 15
+ggplot(data=pol, mapping=aes(x=o3.aqi)) + geom_histogram(colour = 5, fill = "blue", bins = 15) + xlab("O3 AQI") + ylab("Count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Histogram of O3 AQI with Bin size of 15") + theme(plot.title=element_text(color="black", size=14, face="bold.italic", hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+# O3 AQI - Bin Size 30
+ggplot(data=pol, mapping=aes(x=o3.aqi)) + geom_histogram(colour = 5, fill = "blue", bins = 30) + xlab("O3 AQI") + ylab("Count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Histogram of O3 AQI with Bin size of 30") + theme(plot.title=element_text(color="black", size=14, face="bold.italic", hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+# O3 AQI - Bin Size 50
+ggplot(data=pol, mapping=aes(x=o3.aqi)) + geom_histogram(colour = 5, fill = "blue", bins = 50) + xlab("O3 AQI") + ylab("Count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Histogram of O3 AQI with Bin size of 50") + theme(plot.title=element_text(color="black", size=14, face="bold.italic", hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+
+
+# SO2 AQI - Bin Size 15
+ggplot(data=pol, mapping=aes(x=so2.aqi)) + geom_histogram(colour = 4, fill = "red", bins = 15) + xlab("SO2 AQI") + ylab("Count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Histogram of SO2 AQI with Bin size of 15") + theme(plot.title=element_text(color="black", size=14, face="bold.italic", hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+# SO2 AQI - Bin Size 30
+ggplot(data=pol, mapping=aes(x=so2.aqi)) + geom_histogram(colour = 4, fill = "red", bins = 30) + xlab("SO2 AQI") + ylab("Count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Histogram of SO2 AQI with Bin size of 30") + theme(plot.title=element_text(color="black", size=14, face="bold.italic", hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+# SO2 AQI - Bin Size 50
+ggplot(data=pol, mapping=aes(x=so2.aqi)) + geom_histogram(colour = 4, fill = "red", bins = 50) + xlab("SO2 AQI") + ylab("Count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Histogram of SO2 AQI with Bin size of 50") + theme(plot.title=element_text(color="black", size=14, face="bold.italic", hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+
+
+# CO AQI - Bin Size 15
+ggplot(data=pol, mapping=aes(x=co.aqi)) + geom_histogram(colour = 5, fill = "black", bins = 15) + xlab("CO AQI") + ylab("Count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Histogram of CO AQI with Bin size of 15") + theme(plot.title=element_text(color="black", size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+# CO AQI - Bin Size 30
+ggplot(data=pol, mapping=aes(x=co.aqi)) + geom_histogram(colour = 5, fill = "black", bins = 30) + xlab("CO AQI") + ylab("Count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Histogram of CO AQI with Bin size of 30") + theme(plot.title=element_text(color="black", size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+# CO AQI - Bin Size 50
+ggplot(data=pol, mapping=aes(x=co.aqi)) + geom_histogram(colour = 5, fill = "black", bins = 50) + xlab("CO AQI") + ylab("Count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Histogram of CO AQI with Bin size of 50") + theme(plot.title=element_text(color="black", size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+
+
+# O3 Mean - Bin Size 15
+ggplot(data=pol, mapping=aes(x=o3.mean)) + geom_histogram(colour = 5, fill = "white", bins = 15) + xlab("O3 Mean") + ylab("Count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Histogram of O3 Mean column with Bin size of 15") + theme(plot.title=element_text(color="black", size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+# O3 Mean - Bin Size 30
+ggplot(data=pol, mapping=aes(x=o3.mean)) + geom_histogram(colour = 5, fill = "white", bins = 30) + xlab("O3 Mean") + ylab("Count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Histogram of O3 Mean column with Bin size of 30") + theme(plot.title=element_text(color="black", size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+# O3 Mean - Bin Size 50
+ggplot(data=pol, mapping=aes(x=o3.mean)) + geom_histogram(colour = 5, fill = "white", bins = 50) + xlab("O3 Mean") + ylab("Count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Histogram of O3 Mean column with Bin size of 50") + theme(plot.title=element_text(color="black", size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+
+
+
+
+# Step - 3: Box plots
+
+# NO2 AQI - Box plot
+ggplot(data=pol, mapping=aes(x="", y=no2.aqi)) + geom_boxplot(alpha=0.3, colour = 4, fill = "grey") + stat_summary(geom="text", fun=quantile ,aes(label=sprintf("%1.1f", ..y..)), position=position_nudge(x=0.43), size=3) + ylab("NO2 AQI") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Boxplot of NO2 AQI with Quartiles") + theme(plot.title=element_text(color="black", size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+
+# O3 AQI - Box plot
+ggplot(data=pol, mapping=aes(x="", y=o3.aqi)) + geom_boxplot(alpha=0.3, colour = 5, fill = "blue") + stat_summary(geom="text", fun=quantile ,aes(label=sprintf("%1.1f", ..y..)), position=position_nudge(x=0.43), size=3) + ylab("O3 AQI") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Boxplot of O3 AQI with Quartiles") + theme(plot.title=element_text(color="black", size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+
+# SO2 AQI - Box plot
+# Change y axis length for this graph later.
+ggplot(data=pol, mapping=aes(x="", y=so2.aqi)) + geom_boxplot(alpha=0.3, colour = 4, fill = "red") + stat_summary(geom="text", fun=quantile ,aes(label=sprintf("%1.1f", ..y..)), position=position_nudge(x=0.43), size=3) + ylab("SO2 AQI") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Boxplot of SO2 AQI with Quartiles") + theme(plot.title=element_text(color="black", size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+
+# CO AQI - Box plot
+ggplot(data=pol, mapping=aes(x="", y=co.aqi)) + geom_boxplot(alpha=0.3, colour = 5, fill = "black") + stat_summary(geom="text", fun=quantile ,aes(label=sprintf("%1.1f", ..y..)), position=position_nudge(x=0.43), size=3) + ylab("CO AQI") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Boxplot of CO AQI with Quartiles") + theme(plot.title=element_text(color="black", size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+
+# O3 Mean - Box plot
+ggplot(data=pol, mapping=aes(x="", y=o3.mean)) + geom_boxplot(alpha=0.3, colour = 5, fill = "white") + stat_summary(geom="text", fun=quantile ,aes(label=sprintf("%1.1f", ..y..)), position=position_nudge(x=0.43), size=3) + ylab("O3 Mean") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("Boxplot of O3 Mean column with Quartiles") + theme(plot.title=element_text(color="black", size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+
+
+
+
+# Step - 4: Kernel Density Functions
+
+EpaKDF <- function(x){(3/4)*(1-(x^2))}
+GaussianKDF <- function(x){1/sqrt(2*pi)*exp(-(x^2)/2)}
+
+apply_KDF_to_col <- function(h, KDF, column){
+  xi <- c(column)
+  n <- length(xi)
+  x <- seq(from = min(xi) - 1, to = max(xi) + 1, length.out = 800)
+  
+  Dist_around_xis <- sapply(xi, function(xi){(1/(h*n))*KDF((x - xi)/h)})
+  plot(x, apply(Dist_around_xis, 1, sum), type = "l", ylab = "", lwd = 2)
+  
+  rug(xi, lwd = 2)
+  apply(Dist_around_xis, 2, function(z){lines(x, z)})
+}
+
+
+# Epanechnikov KDF Estimation for NO2 AQI
+apply_KDF_to_col(1.5, EpaKDF, pol$no2.aqi) + title(main="Epanechnikov KDF for NO2 AQI")
+# Gaussian KDF Estimation for NO2 AQI
+apply_KDF_to_col(1.5, GaussianKDF, pol$no2.aqi) + title(main="Gaussian KDF for NO2 AQI")
+
+# Epanechnikov KDF Estimation for O3 AQI
+apply_KDF_to_col(1.5, EpaKDF, pol$o3.aqi) + title(main="Epanechnikov KDF for O3 AQI")
+# Gaussian KDF Estimation for O3 AQI
+apply_KDF_to_col(1.5, GaussianKDF, pol$o3.aqi) + title(main="Gaussian KDF for O3 AQI")
+
+# Epanechnikov KDF Estimation for SO2 AQI
+apply_KDF_to_col(1.5, EpaKDF, pol$so2.aqi) + title(main="Epanechnikov KDF for SO2 AQI")
+# Gaussian KDF Estimation for SO2 AQI
+apply_KDF_to_col(1.5, GaussianKDF, pol$so2.aqi) + title(main="Gaussian KDF for SO2 AQI")
+
+# Epanechnikov KDF Estimation for CO AQI
+apply_KDF_to_col(1.5, EpaKDF, pol$co.aqi) + title(main="Epanechnikov KDF for CO AQI")
+# Gaussian KDF Estimation for CO AQI
+apply_KDF_to_col(1.5, GaussianKDF, pol$co.aqi) + title(main="Gaussian KDF for CO AQI")
+
+# Epanechnikov KDF Estimation for O3 Mean
+apply_KDF_to_col(1.5, EpaKDF, pol$o3.mean) + title(main="Epanechnikov KDF for O3 Mean")
+# Gaussian KDF Estimation for O3 Mean
+apply_KDF_to_col(1.5, GaussianKDF, pol$o3.mean) + title(main="Gaussian KDF for O3 Mean")
+
+
+
+
+# Step - 5: QQ Plots
+
+# QQ Plot for NO2 AQI
+ggplot(pol, aes(sample = no2.aqi)) + stat_qq(alpha=0.3, colour = 4) + stat_qq_line(colour="black")  + xlab("Normal Theoretical Quantiles") + ylab("NO2 AQI") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("QQ Plot of NO2 AQI") + theme(plot.title=element_text(color="black", size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+
+# QQ Plot for O3 AQI
+ggplot(pol, aes(sample = o3.aqi)) + stat_qq(alpha=0.3, colour = 5) + stat_qq_line(colour="black") + xlab("Normal Theoretical Quantiles") + ylab("O3 AQI") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("QQ Plot of O3 AQI") + theme(plot.title=element_text(color="black", size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+
+# QQ Plot for SO2 AQI
+ggplot(pol, aes(sample = so2.aqi)) + stat_qq(alpha=0.3, colour = 6) + stat_qq_line(colour="black") + xlab("Normal Theoretical Quantiles") + ylab("SO2 AQI") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("QQ Plot of SO2 AQI") + theme(plot.title=element_text(color="black", size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+
+# QQ Plot for CO AQI
+ggplot(pol, aes(sample = co.aqi)) + stat_qq(alpha=0.3, colour = 7) + stat_qq_line(colour="black") + xlab("Normal Theoretical Quantiles") + ylab("CO AQI") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("QQ Plot of CO AQI") + theme(plot.title=element_text(color="black", size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+
+# QQ Plot for O3 Mean
+ggplot(pol, aes(sample = o3.mean)) + stat_qq(alpha=0.3, colour = 8) + stat_qq_line(colour="black") + xlab("Normal Theoretical Quantiles") + ylab("O3 Mean") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + ggtitle("QQ Plot of O3 Mean") + theme(plot.title=element_text(color="black", size=14, face="bold.italic",hjust=0.5),axis.title.x=element_text(color="black",size=14,face="bold"), axis.title.y = element_text(color="black", size=14, face="bold"))
+```
+
+```{r}
+# Relative Probability Distribution
+
+library(tidyverse)
+library(ggplot2)
+library(ggridges)
+library(ggpubr)
+
+qqnorm(pol$no2.aqi, col = "skyblue3", 
+       main = "pH Q-Q Plot")
+qqline(pol$no2.aqi, col = "red", lwd = 3)
+
+#ridgeline method
+
+ggplot(data=data_of_five_states, aes(x=data_of_five_states$no2.aqi, y=state, fill=state)) +
+  geom_density_ridges_gradient() +
+  ggtitle("Distribution by State") +
+  xlab("NO2 AQI")
+
+#histogram and density line
+m <- mean(pol$no2.aqi)
+std <- sqrt(var(pol$no2.aqi))
+hist(pol$no2.aqi, col = "skyblue3", breaks = 30, prob = TRUE,
+     xlab = "NO2 AQI",
+     main = "Relative Probability Distribution") 
+lines(density(pol$no2.aqi), col = "red", lwd = 2)
+curve(dnorm(x, mean = m, sd = std), col = "green", lwd = 2, add = TRUE, 
+      yaxt = "n")
+legend("topright",   
+       inset = 0.05,
+       legend = c("Density Curve", "Normal Curve"),
+       lty = 1,
+       col = c("red", "green"),
+       cex = .75)
+```
